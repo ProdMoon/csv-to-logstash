@@ -14,6 +14,9 @@ class Config:
     # Elasticsearch configuration
     hosts = 'http://localhost:9200'
     index = 'companies'
+    user = ''
+    password = ''
+    ssl_certificate_authorities = '' # e.g. '/path/to/your/http_ca.crt
 
 def main():
     conf = Config()
@@ -76,7 +79,7 @@ def create_logstash_conf(conf):
         # Writing the input section
         conf_file.write('input {\n')
         conf_file.write('  file {\n')
-        conf_file.write(f'    path => "{conf.csv_file_path}"\n')
+        conf_file.write(f'    path => ["{conf.csv_file_path}"]\n')
         conf_file.write('    start_position => "beginning"\n')
         conf_file.write('    sincedb_path => "NUL"\n')
         conf_file.write('  }\n')
@@ -114,6 +117,12 @@ def create_logstash_conf(conf):
         conf_file.write('  elasticsearch {\n')
         conf_file.write(f'    hosts => "{conf.hosts}"\n')
         conf_file.write(f'    index => "{conf.index}"\n')
+        if conf.user:
+            conf_file.write(f'    user => "{conf.user}"\n')
+        if conf.password:
+            conf_file.write(f'    password => "{conf.password}"\n')
+        if conf.ssl_certificate_authorities:
+            conf_file.write(f'    ssl_certificate_authorities => "{conf.ssl_certificate_authorities}"\n')
         conf_file.write('  }\n')
         # conf_file.write('  stdout { codec => rubydebug }\n')  # For debugging; remove or comment out for production
         conf_file.write('}\n')
@@ -122,7 +131,7 @@ def create_logstash_conf(conf):
     print('To run Logstash with this configuration, use the following command:\n')
     windows_path = conf.logstash_conf_path.replace('/', '\\')
     print(f'  WINDOWS: path\\to\\logstash -f "{windows_path}"\n')
-    print(f'  LINUX: /path/to/logstash -f "{conf.logstash_conf_path}"\n')
+    print(f'  LINUX: /path/to/logstash -f {conf.logstash_conf_path}\n')
 
 if __name__ == '__main__':
     main()
